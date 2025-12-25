@@ -17,10 +17,10 @@ import { DatabaseModule } from './database/database.module';
 			uploads: false,
 			autoSchemaFile: true,
 		}),
-		ComponentsModule,
-		DatabaseModule,
+		ComponentsModule, // HTTP API Module
+		DatabaseModule, // TCP API Module
 	],
-	controllers: [AppController],
+	controllers: [AppController], // HTTP API Controller
 	providers: [AppService, AppResolver],
 })
 export class AppModule {}
