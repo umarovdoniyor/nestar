@@ -68,9 +68,9 @@ export class PropertyUpdate {
   @Field(() => Boolean, { nullable: true })
   propertyRent?: boolean;
 
-  soldAt?: Date;
+  soldAt?: Date; // ⭐ SERVER-ONLY, not from client!
 
-  deletedAt?: Date;
+  deletedAt?: Date; // ⭐ SERVER-ONLY, not from client!
 
   @IsOptional()
   @Field(() => Date, { nullable: true })

@@ -18,8 +18,12 @@ export class ViewService {
   }
 
   private async checkViewExistence(input: ViewInput): Promise<View> {
-    const { memberId, viewRefId } = input;
-    const search: T = { memberId: memberId, viewRefId: viewRefId };
+    const { memberId, viewRefId, viewGroup } = input; // ⭐ GET viewGroup
+    const search: T = {
+      memberId: memberId,
+      viewRefId: viewRefId,
+      viewGroup: viewGroup, // ⭐ INCLUDE in query
+    };
     return await this.viewModel.findOne(search).exec();
   }
 }

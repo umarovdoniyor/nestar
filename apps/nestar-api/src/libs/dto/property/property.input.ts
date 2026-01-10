@@ -62,7 +62,7 @@ export class PropertyInput {
   @Field(() => Boolean, { nullable: true })
   propertyRent?: boolean;
 
-  memberId?: ObjectId;
+  memberId?: ObjectId; // ⭐ Added by resolver (not from client)
 
   @IsOptional()
   @Field(() => Date, { nullable: true })

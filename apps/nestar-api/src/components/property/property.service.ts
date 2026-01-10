@@ -44,24 +44,29 @@ export class PropertyService {
   }
 
   public async getProperty(memberId: ObjectId, propertyId: ObjectId): Promise<Property> {
+    // 1. Find ACTIVE property only
     const search: T = {
       _id: propertyId,
-      propertyStatus: PropertyStatus.ACTIVE,
+      propertyStatus: PropertyStatus.ACTIVE, // ⭐ Only ACTIVE properties
     };
 
     const targetProperty: Property = await this.propertyModel.findOne(search).lean().exec();
     if (!targetProperty) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
 
+    // 2. View tracking (only for authenticated users)
     if (memberId) {
-      const viewInput = { memberId: memberId, viewRefId: propertyId, viewGroup: ViewGroup.PROPERTY };
+      const viewInput = { memberId: memberId, viewRefId: propertyId, viewGroup: ViewGroup.PROPERTY }; // ⭐ Different from MEMBER views
       const newView = await this.viewService.recordView(viewInput);
+
+      // First-time view: increment counter
       if (newView) {
         await this.propertyStatsEditor({ _id: propertyId, targetKey: 'propertyViews', modifier: 1 });
-        targetProperty.propertyViews++;
+        targetProperty.propertyViews++; // Update response
       }
       // meLiked
     }
 
+    // 3. Fetch agent information
     targetProperty.memberData = await this.memberService.getMember(null, targetProperty.memberId);
     return targetProperty;
   }
@@ -72,21 +77,26 @@ export class PropertyService {
   }
 
   public async updateProperty(memberId: ObjectId, input: PropertyUpdate): Promise<Property> {
+    // 1. Extract and prepare dates based on status
     let { propertyStatus, soldAt, deletedAt } = input;
 
+    // 3. Update only if: agent owns it AND property is ACTIVE
     const search: T = {
       _id: input._id,
-      memberId: memberId,
-      propertyStatus: PropertyStatus.ACTIVE,
+      memberId: memberId, // ⭐ Must own property
+      propertyStatus: PropertyStatus.ACTIVE, // ⭐ Must be ACTIVE to update
     };
 
-    if (propertyStatus === PropertyStatus.SOLD) soldAt = moment().toDate();
-    else if (propertyStatus === PropertyStatus.DELETE) deletedAt = moment().toDate();
+    // 2. Auto-set dates for status changes
+    if (propertyStatus === PropertyStatus.SOLD)
+      soldAt = moment().toDate(); // ⭐ Auto-set sold date
+    else if (propertyStatus === PropertyStatus.DELETE) deletedAt = moment().toDate(); // ⭐ Auto-set deleted date
 
     const result = await this.propertyModel.findOneAndUpdate(search, input, { new: true }).exec();
 
     if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
 
+    // 4. Update agent's property count if SOLD or DELETED
     if (soldAt || deletedAt) {
       await this.memberService.memberStatsEditor({ _id: memberId, targetKey: 'memberProperties', modifier: -1 });
     }

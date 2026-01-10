@@ -34,23 +34,23 @@ export class PropertyResolver {
     return await this.propertyService.createProperty(input);
   }
 
-  @UseGuards(WithoutGuard)
+  @UseGuards(WithoutGuard) // ⭐ PUBLIC access (with optional auth)
   @Query(() => Property)
   public async getProperty(
     @Args('propertyId') input: string,
-    @AuthMember('_id') memberId: ObjectId,
+    @AuthMember('_id') memberId: ObjectId, // ⭐ null if unauthenticated
   ): Promise<Property> {
     console.log('Query: getProperty');
     const propertyId = shapeIngoMongoObjectId(input);
     return await this.propertyService.getProperty(memberId, propertyId);
   }
 
-  @Roles(MemberType.AGENT)
+  @Roles(MemberType.AGENT) // ⭐ Only AGENTS can update
   @UseGuards(RolesGuard)
   @Mutation(() => Property)
   public async updateProperty(
     @Args('input') input: PropertyUpdate,
-    @AuthMember('_id') memberId: ObjectId,
+    @AuthMember('_id') memberId: ObjectId, // ⭐ Agent ID from JWT
   ): Promise<Property> {
     console.log('Mutation:updateProperty');
     input._id = shapeIngoMongoObjectId(input._id);

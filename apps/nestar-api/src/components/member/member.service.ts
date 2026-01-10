@@ -144,6 +144,9 @@ export class MemberService {
   }
 
   public async updateMemberByAdmin(input: MemberUpdate): Promise<Member> {
+    // if (input.memberPassword) {
+    //   input.memberPassword = await this.authService.hashPassword(input.memberPassword);
+    // }
     const result: Member = await this.memberModel.findOneAndUpdate({ _id: input._id }, input, { new: true }).exec();
     if (!result) throw new InternalServerErrorException(Message.UPDATE_FAILED);
     return result;

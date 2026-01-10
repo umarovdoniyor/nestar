@@ -1,6 +1,6 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsNotEmpty, IsOptional, Length } from 'class-validator';
-import { MemberType } from '../../enums/member.enum';
+import { MemberStatus, MemberType } from '../../enums/member.enum';
 import { ObjectId } from 'mongoose';
 
 @InputType()
@@ -14,8 +14,8 @@ export class MemberUpdate {
   memberType?: MemberType;
 
   @IsOptional()
-  @Field(() => MemberType, { nullable: true })
-  memberStatus?: MemberType;
+  @Field(() => MemberStatus, { nullable: true })
+  memberStatus?: MemberStatus;
 
   @IsOptional()
   @Field(() => String, { nullable: true })
