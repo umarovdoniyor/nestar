@@ -104,7 +104,10 @@ export class PropertyService {
   }
 
   public async getProperties(memberId: ObjectId, input: PropertiesInquiry): Promise<Properties> {
+    // 1. Match documents based on filters
     const match: T = { propertyStatus: PropertyStatus.ACTIVE };
+
+    // 2. Sort results
     const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
 
     this.shapeMatchQuery(match, input);
@@ -115,15 +118,16 @@ export class PropertyService {
         { $match: match },
         { $sort: sort },
         {
+          // 3. Split into two pipelines
           $facet: {
             list: [
-              { $skip: (input.page - 1) * input.limit },
-              { $limit: input.limit },
+              { $skip: (input.page - 1) * input.limit }, // ⭐ Pagination
+              { $limit: input.limit }, // ⭐ Page size
               // meLiked
               lookupMember,
-              { $unwind: '$memberData' },
+              { $unwind: '$memberData' }, // ⭐ Convert array to object
             ],
-            metaCounter: [{ $count: 'total' }],
+            metaCounter: [{ $count: 'total' }], // ⭐ Get total count for pagination
           },
         },
       ])
@@ -167,11 +171,13 @@ export class PropertyService {
 
   public async getAgentProperties(memberId: ObjectId, input: AgentPropertiesInquiry): Promise<Properties> {
     const { propertyStatus } = input.search;
+
+    // ⭐ CRITICAL: Block DELETE status requests
     if (propertyStatus === PropertyStatus.DELETE) throw new BadRequestException(Message.NOT_ALLOWED_REQUEST);
 
     const match: T = {
-      memberId: memberId,
-      propertyStatus: propertyStatus ?? { $ne: PropertyStatus.DELETE },
+      memberId: memberId, // ⭐ Filter by agent's own ID
+      propertyStatus: propertyStatus ?? { $ne: PropertyStatus.DELETE }, // ⭐ Default: exclude DELETE
     };
     const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
 
@@ -184,7 +190,7 @@ export class PropertyService {
             list: [
               { $skip: (input.page - 1) * input.limit },
               { $limit: input.limit },
-              lookupMember,
+              lookupMember, // ⭐ Join agent data (same agent)
               { $unwind: '$memberData' },
             ],
             metaCounter: [{ $count: 'total' }],
@@ -198,9 +204,10 @@ export class PropertyService {
 
   public async getAllPropertiesByAdmin(input: AllPropertiesInquiry): Promise<Properties> {
     const { propertyStatus, propertyLocationList } = input.search;
-    const match: T = {};
+    const match: T = {}; // ⭐ EMPTY = ALL properties (including DELETED!)
     const sort: T = { [input?.sort ?? 'createdAt']: input?.direction ?? Direction.DESC };
 
+    // ⭐ Admin-specific filters (optional)
     if (propertyStatus) match.propertyStatus = propertyStatus;
     if (propertyLocationList) match.propertyLocation = { $in: propertyLocationList };
 
@@ -213,7 +220,7 @@ export class PropertyService {
             list: [
               { $skip: (input.page - 1) * input.limit },
               { $limit: input.limit },
-              lookupMember,
+              lookupMember, // ⭐ Join agent data
               { $unwind: '$memberData' },
             ],
             metaCounter: [{ $count: 'total' }],
@@ -229,7 +236,7 @@ export class PropertyService {
     let { propertyStatus, soldAt, deletedAt } = input;
     const search: T = {
       _id: input._id,
-      propertyStatus: PropertyStatus.ACTIVE,
+      propertyStatus: PropertyStatus.ACTIVE, // ⭐ Cannot update SOLD or DELETE properties
     };
 
     if (propertyStatus === PropertyStatus.SOLD) soldAt = moment().toDate();
