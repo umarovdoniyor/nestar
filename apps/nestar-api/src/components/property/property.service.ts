@@ -18,6 +18,9 @@ import { ViewService } from '../view/view.service';
 import * as moment from 'moment';
 import { PropertyUpdate } from '../../libs/dto/property/property.update';
 import { lookupMember, shapeIngoMongoObjectId } from '../../libs/config';
+import { LikeService } from '../like/like.service';
+import { LikeInput } from '../../libs/dto/like/like.input';
+import { LikeGroup } from '../../libs/enums/like.enum';
 
 @Injectable()
 export class PropertyService {
@@ -25,6 +28,7 @@ export class PropertyService {
     @InjectModel('Property') private readonly propertyModel: Model<Property>,
     private memberService: MemberService,
     private viewService: ViewService,
+    private likeService: LikeService,
   ) {}
 
   public async createProperty(input: PropertyInput): Promise<Property> {
@@ -69,11 +73,6 @@ export class PropertyService {
     // 3. Fetch agent information
     targetProperty.memberData = await this.memberService.getMember(null, targetProperty.memberId);
     return targetProperty;
-  }
-
-  public async propertyStatsEditor(input: StatisticModifier): Promise<Property> {
-    const { _id, targetKey, modifier } = input;
-    return await this.propertyModel.findByIdAndUpdate(_id, { $inc: { [targetKey]: modifier } }, { new: true }).exec();
   }
 
   public async updateProperty(memberId: ObjectId, input: PropertyUpdate): Promise<Property> {
@@ -202,6 +201,25 @@ export class PropertyService {
     return result[0];
   }
 
+  public async likeTargetProperty(memberId: ObjectId, likeRefId: ObjectId): Promise<Property> {
+    const target: Property = await this.propertyModel
+      .findOne({ _id: likeRefId, propertyStatus: PropertyStatus.ACTIVE })
+      .exec();
+    if (!target) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+
+    const input: LikeInput = {
+      memberId: memberId,
+      likeRefId: likeRefId,
+      likeGroup: LikeGroup.PROPERTY,
+    };
+
+    // LIKE TOGGLE via Like Service
+    const modifier = await this.likeService.toggleLike(input);
+    const result = await this.propertyStatsEditor({ _id: likeRefId, targetKey: 'propertyLikes', modifier: modifier });
+    if (!result) throw new InternalServerErrorException(Message.SOMETHING_WENT_WRONG);
+    return result;
+  }
+
   public async getAllPropertiesByAdmin(input: AllPropertiesInquiry): Promise<Properties> {
     const { propertyStatus, propertyLocationList } = input.search;
     const match: T = {}; // ⭐ EMPTY = ALL properties (including DELETED!)
@@ -258,5 +276,10 @@ export class PropertyService {
     if (!result) throw new InternalServerErrorException(Message.REMOVE_FAILED);
 
     return result;
+  }
+
+  public async propertyStatsEditor(input: StatisticModifier): Promise<Property> {
+    const { _id, targetKey, modifier } = input;
+    return await this.propertyModel.findByIdAndUpdate(_id, { $inc: { [targetKey]: modifier } }, { new: true }).exec();
   }
 }
