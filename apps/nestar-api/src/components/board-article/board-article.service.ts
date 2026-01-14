@@ -58,6 +58,9 @@ export class BoardArticleService {
         targetBoardArticle.articleViews++; // Update response
       }
       // meLiked
+      const likeInput: LikeInput = { memberId: memberId, likeRefId: articleId, likeGroup: LikeGroup.ARTICLE };
+      const meLiked = await this.likeService.checkLikeExistence(likeInput);
+      targetBoardArticle.meLiked = meLiked;
     }
 
     // 3. Fetch agent information

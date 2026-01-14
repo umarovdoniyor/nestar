@@ -68,6 +68,9 @@ export class PropertyService {
         targetProperty.propertyViews++; // Update response
       }
       // meLiked
+      const likeInput: LikeInput = { memberId: memberId, likeRefId: propertyId, likeGroup: LikeGroup.PROPERTY };
+      const meLiked = await this.likeService.checkLikeExistence(likeInput);
+      targetProperty.meLiked = meLiked;
     }
 
     // 3. Fetch agent information
