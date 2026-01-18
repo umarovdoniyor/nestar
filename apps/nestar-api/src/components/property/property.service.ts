@@ -4,6 +4,7 @@ import { Model, ObjectId } from 'mongoose';
 import {
   AgentPropertiesInquiry,
   AllPropertiesInquiry,
+  OrdinaryInquiry,
   PropertiesInquiry,
   PropertyInput,
 } from '../../libs/dto/property/property.input';
@@ -170,6 +171,10 @@ export class PropertyService {
         return { [ele]: true };
       });
     }
+  }
+
+  public async getFavorites(memberId: ObjectId, input: OrdinaryInquiry): Promise<Properties> {
+    return await this.likeService.getFavoriteProperties(memberId, input);
   }
 
   public async getAgentProperties(memberId: ObjectId, input: AgentPropertiesInquiry): Promise<Properties> {
