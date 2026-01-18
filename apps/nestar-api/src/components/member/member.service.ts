@@ -90,16 +90,17 @@ export class MemberService {
         await this.memberModel.findOneAndUpdate(search, { $inc: { memberViews: 1 } }, { new: true }).exec();
         targetMember.memberViews++;
       }
+
+      // meLiked
+      const likeInput: LikeInput = { memberId: memberId, likeRefId: targetId, likeGroup: LikeGroup.MEMBER };
+      const meLiked = await this.likeService.checkLikeExistence(likeInput);
+      targetMember.meLiked = meLiked;
+
+      // meFollowed
+      const meFollowed = await this.checkSubscription(memberId, targetId);
+      targetMember.meFollowed = meFollowed;
     }
 
-    // meLiked
-    const likeInput: LikeInput = { memberId: memberId, likeRefId: targetId, likeGroup: LikeGroup.MEMBER };
-    const meLiked = await this.likeService.checkLikeExistence(likeInput);
-    targetMember.meLiked = meLiked;
-
-    // meFollowed
-    const meFollowed = await this.checkSubscription(memberId, targetId);
-    targetMember.meFollowed = meFollowed;
     return targetMember;
   }
 

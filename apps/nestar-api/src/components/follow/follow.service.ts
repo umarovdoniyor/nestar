@@ -141,8 +141,8 @@ export class FollowService {
      * return result[0] || { list: [], metaCounter: [] };
      */
 
-    if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
-    return result[0];
+    // if (!result.length) throw new InternalServerErrorException(Message.NO_DATA_FOUND);
+    return result[0] || { list: [], metaCounter: [] };
   }
 
   // END
