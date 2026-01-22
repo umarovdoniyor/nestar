@@ -8,7 +8,12 @@ export class BatchController {
   private logger: Logger = new Logger('BartchController');
   constructor(private readonly batchService: BatchService) {}
 
-  @Cron('00 * * * * *', { name: BATCH_ROLLBACK })
+  @Timeout(1000)
+  handleTimeout() {
+    this.logger.debug('BATCH SERVICE READY!');
+  }
+
+  @Cron('00 00 01 * * *', { name: BATCH_ROLLBACK })
   public async batchRollback() {
     try {
       this.logger['context'] = BATCH_ROLLBACK;
@@ -19,32 +24,27 @@ export class BatchController {
     }
   }
 
-  @Cron('20 * * * * *', { name: BATCH_TOP_PROPERTIES })
-  public async batchProperties() {
+  @Cron('20 00 01 * * *', { name: BATCH_TOP_PROPERTIES })
+  public async batchTopProperties() {
     try {
       this.logger['context'] = BATCH_TOP_PROPERTIES;
       this.logger.debug('EXECUTING BATCH TOP PROPERTIES TASK');
-      await this.batchService.batchProperties();
+      await this.batchService.batchTopProperties();
     } catch (err) {
       this.logger.error(`BATCH TOP PROPERTIES TASK ERROR: ${err.message}`);
     }
   }
 
-  @Cron('40 * * * * *', { name: BATCH_TOP_AGENTS })
-  public async batchAgents() {
+  @Cron('40 00 01 * * *', { name: BATCH_TOP_AGENTS })
+  public async batchTopAgents() {
     try {
       this.logger['context'] = BATCH_TOP_AGENTS;
       this.logger.debug('EXECUTING BATCH TOP AGENTS TASK');
-      await this.batchService.batchAgents();
+      await this.batchService.batchTopAgents();
     } catch (err) {
       this.logger.error(`BATCH TOP AGENTS TASK ERROR: ${err.message}`);
     }
   }
-
-  /* @Timeout(5000)
-  handleTimeout() {
-    this.logger.debug('Timeout task executed after 5 seconds');
-  }*/
 
   /*
   @Interval(2000)
