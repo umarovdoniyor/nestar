@@ -8,6 +8,7 @@ import { AppResolver } from './app.resolver';
 import { ComponentsModule } from './components/components.module';
 import { DatabaseModule } from './database/database.module';
 import { T } from './libs/types/common';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { T } from './libs/types/common';
       },
     }),
     ComponentsModule, // HTTP API Module
-    DatabaseModule, // TCP API Module
+    DatabaseModule,
+    SocketModule, // TCP API Module
   ],
   controllers: [AppController], // HTTP API Controller
   providers: [AppService, AppResolver],

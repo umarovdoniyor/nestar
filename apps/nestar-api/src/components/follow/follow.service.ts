@@ -146,6 +146,11 @@ export class FollowService {
       .exec();
 
     /**
+     * Abdullo(followerId) -> follow DAnny(followingId)  ===>
+     */
+    // folloewerId => follow bosgan odam
+
+    /**
      * Logic issue with empty results - if (!result.length) will throw an error even on successful queries with no results. Aggregation always returns an array. Better to just return the result:
      * return result[0] || { list: [], metaCounter: [] };
      */

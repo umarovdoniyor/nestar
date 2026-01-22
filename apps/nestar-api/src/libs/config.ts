@@ -95,7 +95,7 @@ interface LookupAuthMemberFollowed {
 }
 
 export const lookupAuthMemberFollowed = (input: LookupAuthMemberFollowed) => {
-  const { followerId, followingId = '$_id' } = input;
+  const { followerId, followingId } = input;
   return {
     $lookup: {
       from: 'follows',
