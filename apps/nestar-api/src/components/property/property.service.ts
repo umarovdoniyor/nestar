@@ -156,10 +156,10 @@ export class PropertyService {
     } = input.search;
 
     if (memberId) match.memberId = shapeIngoMongoObjectId(memberId);
-    if (locationList) match.propertyLocation = { $in: locationList };
-    if (roomsList) match.propertyRooms = { $in: roomsList };
-    if (bedsList) match.propertyBeds = { $in: bedsList };
-    if (typeList) match.propertyType = { $in: typeList };
+    if (locationList && locationList.length > 0) match.propertyLocation = { $in: locationList };
+    if (roomsList && roomsList.length > 0) match.propertyRooms = { $in: roomsList };
+    if (bedsList && bedsList.length > 0) match.propertyBeds = { $in: bedsList };
+    if (typeList && typeList.length > 0) match.propertyType = { $in: typeList };
 
     if (pricesRange) match.propertyPrice = { $gte: pricesRange.start, $lte: pricesRange.end };
     if (periodsRange) match.createdAt = { $gte: periodsRange.start, $lte: periodsRange.end };
